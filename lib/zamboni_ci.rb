@@ -1,5 +1,6 @@
 require 'optparse'
 require 'curb'
+require 'spaceship'
 require "./zamboni_ci/command_parser"
 require "./zamboni_ci/device_parser"
 
@@ -16,13 +17,21 @@ http = Curl.post(hockey_url, {:_method => "post", :authenticity_token => options
    http.headers['Accept'] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
 end
 
-hockey_devices = DeviceParser.parse(http.body_str)
+hockey_devices = DeviceParser.parse_hockey(http.body_str)
 
-# Parse hockey UDIDs into an array
-=begin
-puts ENV["ZAMBONI_APPLE_ID_EMAIL"]
-puts ENV["ZAMBONI_APPLE_ID_PASSWORD"]
-puts ENV["ZAMBONI_HOCKEY_EMAIL"]
-puts ENV["ZAMBONI_HOCKEY_PASSWORD"]
-=end
+# Log into Apple Portal
+Spaceship::Portal.login(ENV["ZAMBONI_APPLE_ID_EMAIL"], ENV["ZAMBONI_APPLE_ID_PASSWORD"])
 
+# Find provisioning profile
+all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
+profile = all_profiles.last
+
+# Find devices to add
+spaceship_devices = DeviceParser.parse_spaceship(profile.devices)
+
+devices_to_add = DeviceParser.find_new_devices(hockey_devices, spaceship_devices)
+
+# Print devices to add
+devices_to_add.each do |device|
+   puts "add: " + device.name + " " + device.udid
+end
