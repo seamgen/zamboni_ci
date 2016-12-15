@@ -1,6 +1,6 @@
 require 'optparse'
 
-Options = Struct.new(:hockey_app_id, :hockey_auth_token, :hockey_session_token)
+Options = Struct.new(:hockey_app_id, :hockey_auth_token, :hockey_session_token, :bundle_id)
 
 class CommandParser
    def self.parse(options)
@@ -19,6 +19,10 @@ class CommandParser
 
          parser.on("--h_session_token HOCKEYSESSIONTOKEN", "hockey app session token") do |v|
             args.hockey_session_token = v
+         end
+
+         parser.on("--bundle_id BUNDLEID", "provisioning profile's bundle identifier") do |v|
+            args.bundle_id = v
          end
       end
 
