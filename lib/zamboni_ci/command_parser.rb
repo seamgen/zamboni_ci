@@ -4,7 +4,6 @@ Options = Struct.new(:hockey_app_id, :hockey_auth_token, :hockey_session_token)
 
 class CommandParser
    def self.parse(options)
-      # hold the command line options we parse
       args = Options.new()
 
       opt_parser = OptionParser.new do |parser|
