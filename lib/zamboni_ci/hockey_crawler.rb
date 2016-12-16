@@ -3,7 +3,15 @@ require 'nokogiri'
 
 class HockeyCrawler
 
-   def scrape_hockey()
+   attr_reader :username, :password, :app_id
+
+   def initialize username, password, app_id
+      @username = username
+      @password = password
+      @app_id   = app_id
+   end
+
+   def scrape_hockey
       
       sign_in_form_response = Curl.get("https://rink.hockeyapp.net/users/sign_in") do |http|
          http.headers['Content_Type'] = "application/x-www-form-urlencoded"
@@ -14,8 +22,8 @@ class HockeyCrawler
       un_authenticated_session_token = parse_session_cookie(sign_in_form_response.header_str)
 
       login_response = Curl::Easy.http_post("https://rink.hockeyapp.net/users/sign_in",
-                         Curl::PostField.content('user[email]', 'jmoyers14@gmail.com'),
-                         Curl::PostField.content('user[password]', 'Pa4dr4es'),
+                         Curl::PostField.content('user[email]', self.username),
+                         Curl::PostField.content('user[password]', self.password),
                          Curl::PostField.content('what', 'sign_in'),
                          Curl::PostField.content('commit', 'Sign In'),
                          Curl::PostField.content('authenticity_token', sign_in_form_csrf_token )) do |http|
@@ -26,7 +34,7 @@ class HockeyCrawler
 
       authenticated_session_token = parse_session_cookie(login_response.header_str)
 
-      devices_page_response = Curl.get("https://rink.hockeyapp.net/manage/apps/444228/devices") do |http|
+      devices_page_response = Curl.get("https://rink.hockeyapp.net/manage/apps/#{app_id}/devices") do |http|
          http.headers['Cookie'] = authenticated_session_token
          http.headers['Content_Type'] = "application/x-www-form-urlencoded"
          http.headers['Accept'] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
@@ -34,7 +42,7 @@ class HockeyCrawler
 
       devices_page_csrf_token = scrape_token(devices_page_response.body_str)
 
-      exported_devices_response = Curl.post("https://rink.hockeyapp.net/manage/apps/444228/app_users/export", {:_method => "post", :authenticity_token => devices_page_csrf_token }) do |http|
+      exported_devices_response = Curl.post("https://rink.hockeyapp.net/manage/apps/#{app_id}/app_users/export", {:_method => "post", :authenticity_token => devices_page_csrf_token }) do |http|
          http.headers['Cookie'] = authenticated_session_token
          http.headers['Content_Type'] = "application/x-www-form-urlencoded"
          http.headers['Accept'] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
