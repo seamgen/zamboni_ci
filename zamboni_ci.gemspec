@@ -7,5 +7,5 @@ Gem::Specification.new do |s|
    s.description = 'hello world'
    s.authors = ["Jeremy Moyers"]
    s.email = 'jmoyers@seamgen.com'
-   s.files = ["./lib/zamboni_ci.rb", "./lib/zamboni_ci/command_parser.rb", "./lib/zamboni_ci/device_parser.rb", "./test/tc_command_parser.rb", "./test/tc_device_parser.rb", "./test/tc_zamboni_ci.rb"]
+   s.files = ["./lib/zamboni_ci.rb", "./lib/zamboni_ci/command_parser.rb", "./lib/zamboni_ci/device_parser.rb", "./lib/zamboni_ci/hockey_crawler.rb", "./test/tc_command_parser.rb", "./test/tc_device_parser.rb", "./test/tc_zamboni_ci.rb"]
 end
