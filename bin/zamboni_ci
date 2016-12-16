@@ -3,6 +3,7 @@
 require 'optparse'
 require 'curb'
 require 'spaceship'
+require 'keychain'
 require_relative "../lib/zamboni_ci/command_parser"
 require_relative "../lib/zamboni_ci/device_parser"
 require_relative "../lib/zamboni_ci/hockey_crawler"
@@ -11,14 +12,17 @@ require_relative "../lib/zamboni_ci/hockey_crawler"
 arg_array = ARGV
 options = CommandParser.parse arg_array
 
-crawler = HockeyCrawler.new(ENV["ZAMBONI_HOCKEY_USERNAME"], ENV["ZAMBONI_HOCKEY_PASSWORD"], options.hockey_app_id)
+hockey_pass = Keychain.internet_passwords.where(:server => "rink.hockeyapp.net", :account => options.hockey_account).first.password
+
+crawler = HockeyCrawler.new(options.hockey_account, hockey_pass, options.hockey_app_id)
 
 device_list = crawler.scrape_hockey
 
 hockey_devices = DeviceParser.parse_hockey(device_list)
 
 # Log into Apple Portal
-Spaceship::Portal.login(ENV["ZAMBONI_APPLE_ID_EMAIL"], ENV["ZAMBONI_APPLE_ID_PASSWORD"])
+apple_pass = Keychain.internet_passwords.where(:server => "developer.apple.com", :account => options.apple_account).first.password
+Spaceship::Portal.login(options.apple_account, apple_pass)
 
 # Find provisioning profile
 all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
