@@ -10,9 +10,11 @@ class TC_command_parser < Test::Unit::TestCase
    end
 
    def test_all_args
-      options = CommandParser.parse %w[--h_app_id 123456 --bundle_id com.bundle.id]
+      options = CommandParser.parse %w[--h_app_id 123456 --bundle_id com.bundle.id --apple_account jmoyers14@gmail.com --hockey_account hockey@gmail.com]
       assert(options.hockey_app_id == "123456", 'hockey_app_id not parsed')
       assert(options.bundle_id == "com.bundle.id", 'bundle_id not parsed')
+      assert(options.apple_account == "jmoyers14@gmail.com", "apple_account not parsed")
+      assert(options.hockey_account == "hockey@gmail.com", "hockey_account not parsed")
    end
 
    def test_only_app_id
@@ -28,9 +30,11 @@ class TC_command_parser < Test::Unit::TestCase
    end
 
    def test_all_args_re_order
-      options = CommandParser.parse %w[--bundle_id com.bundle.id --h_app_id 123456]
+      options = CommandParser.parse %w[--hockey_account hockey@gmail.com --bundle_id com.bundle.id --apple_account jmoyers14@gmail.com --h_app_id 123456]
       assert(options.hockey_app_id == "123456", 'hockey_app_id not parsed')
       assert(options.bundle_id == "com.bundle.id", 'bundle_id not parsed')
+      assert(options.apple_account == "jmoyers14@gmail.com", "apple_account not parsed")
+      assert(options.hockey_account == "hockey@gmail.com", "hockey_account not parsed")
    end
 
 end
