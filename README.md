@@ -6,7 +6,7 @@ A command line automation utility for fetching UDIDs from hockey and updating ap
 zamboni_ci is packaged as a ruby gem. To install, start by pulling the repository
 
 ```
-git clone GitHub.com
+git clone git@github.com:seamgen/zamboni_ci.git
 ```
 
 next build the gem
@@ -65,4 +65,3 @@ zamboni_ci looks for an existing internet password in your keychain for rink.hoc
 ```
 security add-internet-password -s rink.hockeyapp.com -w PASSWORD
 ```
->>>>>>> README
