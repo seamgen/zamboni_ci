@@ -1,6 +1,6 @@
 require 'optparse'
 
-Options = Struct.new(:hockey_app_id, :bundle_id, :hockey_account, :apple_account, :test)
+Options = Struct.new(:hockey_app_id, :bundle_id, :prov_profile_name, :hockey_account, :apple_account, :test)
 
 class CommandParser
    def self.parse(options)
@@ -16,6 +16,10 @@ class CommandParser
 
          parser.on("--bundle_id BUNDLEID", "required provisioning profile's bundle identifier") do |v|
             args.bundle_id = v
+         end
+
+         parser.on("--prov_profile_name PROFILENAME", "required name of the provisioning profile") do |v|
+            args.prov_profile_name = v
          end
 
          parser.on("--apple_account APPLEACCOUNT", "required email used to log into the apple provisioning portal") do |v|

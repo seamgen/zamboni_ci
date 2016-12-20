@@ -45,12 +45,22 @@ if CommandParser.validate options
    Spaceship::Portal.login(options.apple_account, apple_pass)
 
    # Find provisioning profile
-   all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
+
+   #all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
+   all_profiles = Spaceship::Portal.provisioning_profile.all
+   profile = all_profiles.find do |profile|
+      profile.name == options.prov_profile_name
+   end
    if all_profiles == nil || all_profiles.count == 0
       puts "No provisioning profiles found for bundle_id #{options.bundle_id}"
       exit
    end
-   profile = all_profiles.last
+   #profile = all_profiles.last
+
+   if profile == nil
+      puts "zamboni_ci: No provisioning profile found with name #{options.prov_profile_name}"
+      exit
+   end
 
    # Find devices to add
    spaceship_devices = DeviceParser.parse_spaceship(profile.devices)
