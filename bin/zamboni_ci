@@ -14,20 +14,42 @@ options = CommandParser.parse arg_array
 
 if CommandParser.validate options
 
-   hockey_pass = Keychain.internet_passwords.where(:server => "rink.hockeyapp.net", :account => options.hockey_account).first.password
+   # Find Hockey Creds in Keychain
+   hockey_keychain_item = Keychain.internet_passwords.where(:server => "rink.hockeyapp.net", :account => options.hockey_account).first
+   if hockey_keychain_item == nil || hockey_keychain_item.password == nil
+      puts "zamboni_ci: could not find keychain item for rink.hockeyapp.net for account #{options.hockey_account}"
+      exit
+   end
+   hockey_pass = hockey_keychain_item.password
 
+   # Crawl hockey for device list
    crawler = HockeyCrawler.new(options.hockey_account, hockey_pass, options.hockey_app_id)
 
    device_list = crawler.scrape_hockey
+   if device_list == nil
+      puts "zamboni_ci: error crawling hockey website"
+      exit
+   end
 
    hockey_devices = DeviceParser.parse_hockey(device_list)
 
-   # Log into Apple Portal
-   apple_pass = Keychain.internet_passwords.where(:server => "developer.apple.com", :account => options.apple_account).first.password
+   # Find Apple Creds in Keychain
+   apple_keychain_item = Keychain.internet_passwords.where(:server => "developer.apple.com", :account => options.apple_account).first
+   if apple_keychain_item == nil || apple_keychain_item.password == nil
+      puts "zambonie_ci: could not find keychain item for developer.apple.com for account #{options.apple_account}"
+      exit
+   end
+   apple_pass = apple_keychain_item.password
+
+   # Log into Provisioning Portal
    Spaceship::Portal.login(options.apple_account, apple_pass)
 
    # Find provisioning profile
    all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
+   if all_profiles == nil || all_profiles.count == 0
+      puts "No provisioning profiles found for bundle_id #{options.bundle_id}"
+      exit
+   end
    profile = all_profiles.last
 
    # Find devices to add
@@ -36,8 +58,18 @@ if CommandParser.validate options
    devices_to_add = DeviceParser.find_new_devices(hockey_devices, spaceship_devices)
 
    # Print devices to add
-   devices_to_add.each do |device|
-      puts "add: " + device.name + " " + device.udid
+   if options.test 
+      puts ("Test mode:")
+      devices_to_add.each do |device|
+         puts "add: " + device.name + " " + device.udid
+      end
+   else
+      devices_to_add.each do |device|
+         puts "add: " + device.name + " " + device.udid
+         new_device = Spaceship::Portal.device.create!(name: device.name, udid: device.udid)
+         profile.devices.push new_device
+      end
+      profile.update!
    end
 else
    puts "zamboni_ci: Missing required argument. see zamboni_ci -h for details"
