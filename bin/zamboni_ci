@@ -12,28 +12,41 @@ require_relative "../lib/zamboni_ci/hockey_crawler"
 arg_array = ARGV
 options = CommandParser.parse arg_array
 
-hockey_pass = Keychain.internet_passwords.where(:server => "rink.hockeyapp.net", :account => options.hockey_account).first.password
+if CommandParser.validate options
 
-crawler = HockeyCrawler.new(options.hockey_account, hockey_pass, options.hockey_app_id)
+   hockey_pass = Keychain.internet_passwords.where(:server => "rink.hockeyapp.net", :account => options.hockey_account).first.password
 
-device_list = crawler.scrape_hockey
+   crawler = HockeyCrawler.new(options.hockey_account, hockey_pass, options.hockey_app_id)
 
-hockey_devices = DeviceParser.parse_hockey(device_list)
+   device_list = crawler.scrape_hockey
 
-# Log into Apple Portal
-apple_pass = Keychain.internet_passwords.where(:server => "developer.apple.com", :account => options.apple_account).first.password
-Spaceship::Portal.login(options.apple_account, apple_pass)
+   hockey_devices = DeviceParser.parse_hockey(device_list)
 
-# Find provisioning profile
-all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
-profile = all_profiles.last
+   # Log into Apple Portal
+   apple_pass = Keychain.internet_passwords.where(:server => "developer.apple.com", :account => options.apple_account).first.password
+   Spaceship::Portal.login(options.apple_account, apple_pass)
 
-# Find devices to add
-spaceship_devices = DeviceParser.parse_spaceship(profile.devices)
+   # Find provisioning profile
+   all_profiles = Spaceship::Portal.provisioning_profile.find_by_bundle_id(options.bundle_id)
+   profile = all_profiles.last
 
-devices_to_add = DeviceParser.find_new_devices(hockey_devices, spaceship_devices)
+   # Find devices to add
+   spaceship_devices = DeviceParser.parse_spaceship(profile.devices)
 
-# Print devices to add
-devices_to_add.each do |device|
-   puts "add: " + device.name + " " + device.udid
+   devices_to_add = DeviceParser.find_new_devices(hockey_devices, spaceship_devices)
+
+   # Print devices to add
+   devices_to_add.each do |device|
+      puts "add: " + device.name + " " + device.udid
+   end
+else
+   puts "zamboni_ci: Missing required argument. see zamboni_ci -h for details"
 end
+
+=begin
+profile.devices.push new_device
+
+puts profile.devices
+
+profile.update!
+=end
