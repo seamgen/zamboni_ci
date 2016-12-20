@@ -7,7 +7,7 @@ class CommandParser
       args = Options.new()
 
       opt_parser = OptionParser.new do |parser|
-         parser.banner = "Usage: example"
+         parser.banner = "Usage: all parameters are required"
 
          parser.on("--h_app_id HOCKEYAPPID", "Hockey app id") do |v|
             args.hockey_app_id = v
@@ -23,6 +23,11 @@ class CommandParser
 
          parser.on("--hockey_account HOCKEYACCOUNT", "email used to log into hockeyapp") do |v|
             args.hockey_account = v
+         end
+
+         parser.on("-h", "Print Help") do
+            puts parser
+            exit
          end
       end
 
